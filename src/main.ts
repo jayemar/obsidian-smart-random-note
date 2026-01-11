@@ -1,12 +1,12 @@
 import { MarkdownView, Plugin, TFile } from 'obsidian';
-import { getTagFilesMap, randomElement } from './utilities';
+import { getTagFilesMap, randomElement, filterFilesByDirectory } from './utilities';
 import { SmartRandomNoteSettingTab } from './settingTab';
 import { SearchView, SmartRandomNoteSettings } from './types';
 import { SmartRandomNoteNotice } from './smartRandomNoteNotice';
 import { OpenRandomTaggedNoteModal } from './openRandomTaggedNoteModal';
 
 export default class SmartRandomNotePlugin extends Plugin {
-    settings: SmartRandomNoteSettings = { openInNewLeaf: true, enableRibbonIcon: true };
+    settings: SmartRandomNoteSettings = { openInNewLeaf: true, enableRibbonIcon: true, directoryPath: '' };
     ribbonIconEl: HTMLElement | undefined = undefined;
 
     async onload(): Promise<void> {
@@ -47,18 +47,31 @@ export default class SmartRandomNotePlugin extends Plugin {
 
     handleOpenRandomNote = async (): Promise<void> => {
         const markdownFiles = this.app.vault.getMarkdownFiles();
-
-        this.openRandomNote(markdownFiles);
+        const filteredFiles = filterFilesByDirectory(markdownFiles, this.settings.directoryPath);
+        this.openRandomNote(filteredFiles);
     };
 
     handleOpenTaggedRandomNote = (): void => {
         const tagFilesMap = getTagFilesMap(this.app);
 
-        const tags = Object.keys(tagFilesMap);
+        const filteredTagFilesMap: { [tag: string]: TFile[] } = {};
+        for (const tag in tagFilesMap) {
+            const filteredFiles = filterFilesByDirectory(tagFilesMap[tag], this.settings.directoryPath);
+            if (filteredFiles.length > 0) {
+                filteredTagFilesMap[tag] = filteredFiles;
+            }
+        }
+
+        const tags = Object.keys(filteredTagFilesMap);
+        if (tags.length === 0) {
+            new SmartRandomNoteNotice('No tagged notes found in the specified directory', 5000);
+            return;
+        }
+
         const modal = new OpenRandomTaggedNoteModal(this.app, tags);
 
         modal.submitCallback = async (selectedTag: string): Promise<void> => {
-            const taggedFiles = tagFilesMap[selectedTag];
+            const taggedFiles = filteredTagFilesMap[selectedTag];
             await this.openRandomNote(taggedFiles);
         };
 
@@ -80,7 +93,14 @@ export default class SmartRandomNotePlugin extends Plugin {
             return;
         }
 
-        await this.openRandomNote(searchResults);
+        const filteredResults = filterFilesByDirectory(searchResults, this.settings.directoryPath);
+
+        if (!filteredResults.length) {
+            new SmartRandomNoteNotice('No search results found in the specified directory', 5000);
+            return;
+        }
+
+        await this.openRandomNote(filteredResults);
     };
 
     handleInsertLinkFromSearch = async (): Promise<void> => {
@@ -98,7 +118,14 @@ export default class SmartRandomNotePlugin extends Plugin {
             return;
         }
 
-        await this.insertRandomLinkAtCursor(searchResults);
+        const filteredResults = filterFilesByDirectory(searchResults, this.settings.directoryPath);
+
+        if (!filteredResults.length) {
+            new SmartRandomNoteNotice('No search results found in the specified directory', 5000);
+            return;
+        }
+
+        await this.insertRandomLinkAtCursor(filteredResults);
     };
 
     openRandomNote = async (files: TFile[]): Promise<void> => {
@@ -141,6 +168,7 @@ export default class SmartRandomNotePlugin extends Plugin {
         if (loadedSettings) {
             this.setOpenInNewLeaf(loadedSettings.openInNewLeaf);
             this.setEnableRibbonIcon(loadedSettings.enableRibbonIcon);
+            this.setDirectoryPath(loadedSettings.directoryPath || '');
         } else {
             this.refreshRibbonIcon();
         }
@@ -155,6 +183,29 @@ export default class SmartRandomNotePlugin extends Plugin {
         this.settings.enableRibbonIcon = value;
         this.refreshRibbonIcon();
         this.saveData(this.settings);
+    };
+
+    setDirectoryPath = (value: string): void => {
+        this.settings.directoryPath = value;
+        this.saveData(this.settings);
+        this.validateDirectoryPath(value);
+    };
+
+    validateDirectoryPath = (path: string): void => {
+        if (!path || path.trim() === '') {
+            return;
+        }
+
+        const normalizedPath = path.trim().replace(/^\/+|\/+$/g, '');
+        const allFiles = this.app.vault.getMarkdownFiles();
+        const matchingFiles = filterFilesByDirectory(allFiles, normalizedPath);
+
+        if (matchingFiles.length === 0) {
+            new SmartRandomNoteNotice(
+                `Warning: No markdown files found in directory "${normalizedPath}"`,
+                8000
+            );
+        }
     };
 
     refreshRibbonIcon = (): void => {

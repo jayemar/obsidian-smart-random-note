@@ -1,4 +1,4 @@
-import { App, CachedMetadata } from 'obsidian';
+import { App, CachedMetadata, TFile } from 'obsidian';
 import { TagFilesMap } from './types';
 
 export function getTagFilesMap(app: App): TagFilesMap {
@@ -39,4 +39,17 @@ function getCachedTags(cachedMetadata: CachedMetadata): string[] {
 
 export function randomElement<T>(array: T[]): T {
     return array[(array.length * Math.random()) << 0];
+}
+
+export function filterFilesByDirectory(files: TFile[], directoryPath: string | undefined): TFile[] {
+    if (!directoryPath || directoryPath.trim() === '') {
+        return files;
+    }
+
+    const normalizedDir = directoryPath.trim().replace(/^\/+|\/+$/g, '');
+
+    return files.filter(file => {
+        return file.path.startsWith(normalizedDir + '/') ||
+               file.path === normalizedDir;
+    });
 }

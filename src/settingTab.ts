@@ -31,5 +31,16 @@ export class SmartRandomNoteSettingTab extends PluginSettingTab {
                 toggle.setValue(this.plugin.settings.enableRibbonIcon);
                 toggle.onChange(this.plugin.setEnableRibbonIcon);
             });
+
+        new Setting(containerEl)
+            .setName('Directory Path')
+            .setDesc('Limit random note selection to a specific directory and its subdirectories. Leave empty to use the entire vault. Example: "Projects/Work"')
+            .addText((text) => {
+                text.setPlaceholder('Leave empty for entire vault')
+                    .setValue(this.plugin.settings.directoryPath || '')
+                    .onChange(async (value) => {
+                        this.plugin.setDirectoryPath(value);
+                    });
+            });
     }
 }
