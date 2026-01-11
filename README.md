@@ -13,6 +13,22 @@ Three commands are available:
 
 ![Screenshot](https://raw.githubusercontent.com/erichalldev/obsidian-smart-random-note/master/screenshot.gif)
 
+## Settings
+
+### Directory Path
+
+You can limit random note selection to a specific directory and its subdirectories. This setting applies to all four commands, allowing you to focus on a particular area of your vault.
+
+-   **Empty (default)**: Uses the entire vault
+-   **Example paths**: "Projects/Work", "Archive/2024", "Notes"
+-   The path is relative to your vault root
+-   All subdirectories are automatically included
+
+### Other Settings
+
+-   **Open in New Leaf**: Controls whether random notes open in a new tab or the current one
+-   **Enable Ribbon Icon**: Adds a dice icon to the ribbon for quick access to "Open Random Note from Search"
+
 ## Future Plans
 
 -   Originally I had plans to implement spaced repetition capabilities, but other plugins have been developed that handle that domain well. They are:
