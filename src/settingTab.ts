@@ -1,5 +1,6 @@
 import SmartRandomNotePlugin from './main';
 import { PluginSettingTab, Setting } from 'obsidian';
+import { FolderSuggest } from './folderSuggest';
 
 export class SmartRandomNoteSettingTab extends PluginSettingTab {
     plugin: SmartRandomNotePlugin;
@@ -41,6 +42,8 @@ export class SmartRandomNoteSettingTab extends PluginSettingTab {
                     .onChange(async (value) => {
                         this.plugin.setDirectoryPath(value);
                     });
+
+                new FolderSuggest(this.app, text.inputEl);
             });
     }
 }
