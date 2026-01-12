@@ -168,7 +168,7 @@ export default class SmartRandomNotePlugin extends Plugin {
         if (loadedSettings) {
             this.setOpenInNewLeaf(loadedSettings.openInNewLeaf);
             this.setEnableRibbonIcon(loadedSettings.enableRibbonIcon);
-            this.setDirectoryPath(loadedSettings.directoryPath || '');
+            this.settings.directoryPath = loadedSettings.directoryPath || '';
         } else {
             this.refreshRibbonIcon();
         }
