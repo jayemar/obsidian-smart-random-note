@@ -40,8 +40,18 @@ export class SmartRandomNoteSettingTab extends PluginSettingTab {
                 text.setPlaceholder('Leave empty for entire vault')
                     .setValue(this.plugin.settings.directoryPath || '')
                     .onChange(async (value) => {
-                        this.plugin.setDirectoryPath(value);
+                        this.plugin.settings.directoryPath = value;
+                        await this.plugin.saveData(this.plugin.settings);
                     });
+
+                text.inputEl.setAttribute('autocapitalize', 'none');
+                text.inputEl.setAttribute('autocorrect', 'off');
+                text.inputEl.setAttribute('autocomplete', 'off');
+                text.inputEl.setAttribute('spellcheck', 'false');
+
+                text.inputEl.addEventListener('blur', () => {
+                    this.plugin.validateDirectoryPath(this.plugin.settings.directoryPath);
+                });
 
                 new FolderSuggest(this.app, text.inputEl);
             });

@@ -31,6 +31,7 @@ export class FolderSuggest extends TextInputSuggest<TFolder> {
     selectSuggestion(folder: TFolder, _evt: MouseEvent | KeyboardEvent): void {
         this.textInputEl.value = folder.path;
         this.textInputEl.dispatchEvent(new Event('input', { bubbles: true }));
+        this.textInputEl.dispatchEvent(new Event('blur', { bubbles: true }));
         this.close();
     }
 }
